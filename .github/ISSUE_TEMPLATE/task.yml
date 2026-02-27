@@ -1,0 +1,42 @@
+name: 🛠 Level 2 Dev Task
+description: Break down a Level 1 User Story into technical tasks.
+labels: ["dev-task", "status: ready-to-code"]
+body:
+  - type: input
+    id: parent_link
+    attributes:
+      label: 🔗 Level 1 Parent Issue
+      description: Enter the issue number (e.g., #123) of the User Story this belongs to.
+      placeholder: "#"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📝 Technical Goal
+      description: What is the main objective of this specific dev task?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: level_3_tasks
+    attributes:
+      label: ✅ Level 3 Checklist (Sub-tasks)
+      options:
+        - label: Unit tests written/updated
+        - label: Documentation updated
+        - label: Self-code review completed
+        - label: Database migrations verified (if applicable)
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🚦 Priority Level
+      options:
+        - Low
+        - Medium
+        - High
+        - Blocked
+    validations:
+      required: true
