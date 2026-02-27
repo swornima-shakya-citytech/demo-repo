@@ -1,4 +1,4 @@
-name: 🛠 Level 2 Dev Task
+name: 🛠 Issue/Ticket Template
 description: Break down a Level 1 User Story into technical tasks.
 labels: ["dev-task", "status: ready-to-code"]
 body:
