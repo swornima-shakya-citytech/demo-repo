@@ -1,0 +1,16 @@
+name: Stale PR Alerter
+on:
+  schedule:
+    - cron: '0 9 * * 1-5' # Runs every weekday at 9:00 AM
+
+jobs:
+  stale-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-pr-message: "⚠️ This PR is blocking a Level 2 task. @reviewers, can we get eyes on this to move it to Testing?"
+          stale-pr-label: "status: stale-code"
+          days-before-stale: 1
+          days-before-close: -1 # Never close automatically, just nag
