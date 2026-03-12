@@ -1,0 +1,34 @@
+name: Close parent issue if all sub-issues closed
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  check-parent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const closedIssue = context.payload.issue.number;
+
+            const {data} = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${owner}/${repo} type:issue state:open "${'#'+closedIssue}"`
+            });
+
+            for (const issue of data.items) {
+              const body = issue.body || "";
+              const tasks = body.match(/- \[[ x]\] #\d+/g) || [];
+              const open = body.match(/- \[ \] #\d+/g) || [];
+
+              if (tasks.length > 0 && open.length === 0) {
+                await github.rest.issues.update({
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  state: "closed"
+                });
+              }
+            }
