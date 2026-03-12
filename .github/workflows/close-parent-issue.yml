@@ -3,14 +3,18 @@ name: Close parent issue if all sub-issues closed
 on:
   issues:
     types: [closed]
+permissions:
+  issues: write
+  contents: read
 
 jobs:
   check-parent:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@v8
         with:
           script: |
+            console.log("workflow running")
             const {owner, repo} = context.repo;
             const closedIssue = context.payload.issue.number;
 
