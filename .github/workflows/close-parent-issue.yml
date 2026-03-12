@@ -1,38 +1,66 @@
-name: Close parent issue if all sub-issues closed
+name: Hierarchy Automation
 
 on:
   issues:
     types: [closed]
+
 permissions:
   issues: write
   contents: read
 
 jobs:
-  check-parent:
+  hierarchy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v8
         with:
           script: |
-            console.log("workflow running")
+            const issueNum = context.payload.issue.number;
             const {owner, repo} = context.repo;
-            const closedIssue = context.payload.issue.number;
 
-            const {data} = await github.rest.search.issuesAndPullRequests({
-              q: `repo:${owner}/${repo} type:issue state:open "${'#'+closedIssue}"`
+            // 1️⃣ Find open child issues linked in the body
+            const searchRes = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${owner}/${repo} type:issue state:open "#${issueNum}"`
             });
 
-            for (const issue of data.items) {
-              const body = issue.body || "";
-              const tasks = body.match(/- \[[ x]\] #\d+/g) || [];
-              const open = body.match(/- \[ \] #\d+/g) || [];
+            const openChildren = searchRes.data.items;
 
-              if (tasks.length > 0 && open.length === 0) {
-                await github.rest.issues.update({
-                  owner,
-                  repo,
-                  issue_number: issue.number,
-                  state: "closed"
-                });
-              }
+            // 2️⃣ If children are open → stop
+            if (openChildren.length > 0) {
+              console.log(`Issue #${issueNum} has open children. Nothing to do.`);
+              return;
+            }
+
+            // 3️⃣ Fetch issue body to check for L1
+            const {data: issue} = await github.rest.issues.get({
+              owner, repo, issue_number: issueNum
+            });
+
+            const body = issue.body || "";
+            const isL1 = body.includes("#level1"); // mark L1 in body
+
+            if (isL1) {
+              console.log(`All L2 done → Move L1 #${issueNum} to 'Testing' in Projects v2`);
+
+              // Example GraphQL mutation to move item to "Testing"
+              const query = `
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: String!) {
+                  updateProjectV2ItemField(input: {
+                    projectId: $projectId,
+                    itemId: $itemId,
+                    fieldId: $fieldId,
+                    value: {singleSelectOptionId: $value}
+                  }) { projectV2Item { id } }
+                }
+              `;
+
+              // Replace with your Project ID, Item ID, and Field ID
+              // You can fetch these dynamically if needed
+              console.log("Run GraphQL mutation here to update Project status");
+            } else {
+              // 4️⃣ Close L2 or L3
+              await github.rest.issues.update({
+                owner, repo, issue_number: issueNum, state: "closed"
+              });
+              console.log(`Closed issue #${issueNum}`);
             }
