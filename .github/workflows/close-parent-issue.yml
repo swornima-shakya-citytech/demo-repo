@@ -7,6 +7,7 @@ on:
 permissions:
   issues: write
   contents: read
+  projects: write
 
 jobs:
   hierarchy:
@@ -56,7 +57,12 @@ jobs:
 
               // Replace with your Project ID, Item ID, and Field ID
               // You can fetch these dynamically if needed
-              console.log("Run GraphQL mutation here to update Project status");
+              await github.graphql(query, {
+                projectId: process.env.PROJECT_ID,
+                itemId: process.env.ITEM_ID,
+                fieldId: process.env.STATUS_FIELD_ID,
+                value: process.env.TESTING_OPTION_ID
+              });
             } else {
               // 4️⃣ Close L2 or L3
               await github.rest.issues.update({
